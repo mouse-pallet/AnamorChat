@@ -1,5 +1,37 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+    <div style="float:left;" id="streams"></div>
+    <div style="float:left;"></div>
+
+
+    script(type="text/javascript").
+
+        // MultiParty インスタンスを生成
+        multiparty = new MultiParty( {
+            "key": "a6c8450d-0132-4f6b-87fd-335791028f73"  /* SkyWay keyを指定 */
+        });
+
+        multiparty.on('my_ms', function(video) {
+            // 自分のvideoを表示
+            var vNode = MultiParty.util.createVideoNode(video);
+            $(vNode).appendTo("#streams");
+            setup(900,900);//setup(renderWidthSize,renderHightSize)
+        }).on('peer_ms', function(video) {
+
+
+            // peerのvideoを表示
+            var vNode = MultiParty.util.createVideoNode(video);
+            $(vNode).appendTo("#streams");
+
+            addActor(vNode);
+
+
+        }).on('ms_close', function(peer_id) {
+            // peerが切れたら、対象のvideoノードを削除する
+            $("#"+peer_id).remove();
+        });
+
+        // サーバとpeerに接続
+        multiparty.start()
+
