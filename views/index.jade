@@ -1,37 +1,153 @@
 extends layout
 
 block content
-    <div style="float:left;" id="streams"></div>
-    <div style="float:left;"></div>
+
+    p#moter_ip_input
+      label(for='moter_ip_adress') 相手のモータのIPアドレス：
+      br
+      textarea( id="moter_ip_adress", cols='20', rows='1', maxlength='20', placeholder='192.168.108.208')
+      br
+      input(type='button', value='Exec', onclick='OnButtonClick();')
+
+
+    #streams(style='float:left;')
+    div(style='float:left;')
 
 
     script(type="text/javascript").
+        var moterExist = false;
+        var ipAdress;
+        var ws; //websocket instance
 
-        // MultiParty インスタンスを生成
-        multiparty = new MultiParty( {
-            "key": "a6c8450d-0132-4f6b-87fd-335791028f73"  /* SkyWay keyを指定 */
+        // スクロール禁止
+        $(window).on('touchmove.noScroll', function(e) {
+            e.preventDefault();
         });
 
-        multiparty.on('my_ms', function(video) {
-            // 自分のvideoを表示
-            var vNode = MultiParty.util.createVideoNode(video);
-            $(vNode).appendTo("#streams");
-            setup(900,900);//setup(renderWidthSize,renderHightSize)
-        }).on('peer_ms', function(video) {
+        function webSocketSetting(){
+            ipAdress = $('#moter_ip_adress').val();
+            if(ipAdress){
+                moterExist = true;
+                //test
+                ws = new WebSocket("wss://192.168.108.208:9000/ws");
+            }else {
+                return 1;
+            }
+
+            // Websockeの準備
+            var ws_address = "wss://" + ipAdress  + ":9000/ws";
+            console.log(ws_address);
+            //- ws = new WebSocket(ws_address);
+
+            // メッセージ受信イベントハンドラ
+            ws.onmessage = function(event){
+                moterExist = true;
+               //受信時の処理
+            //- 　var elem = document.getElementById("socketMessage");
+            //-    elem.innerHTML = event.data + "<br>";
+            }
+
+            ws.onerror = function(event){
+                console.log("Not Found : " +ws_address);
+                //エラー処理
+               //-  var elem = document.getElementById("socketMessage");
+               //- elem.innerHTML += "ERROR : " + event.data + "<br>";
+            }
+            return 1;
+
+        }
 
 
-            // peerのvideoを表示
-            var vNode = MultiParty.util.createVideoNode(video);
-            $(vNode).appendTo("#streams");
 
-            addActor(vNode);
+        function OnButtonClick() {
+            var wsSet = webSocketSetting();
+            //- webSocket設定が終わってからskyway実行
+            if(wsSet){
+                        $("#moter_ip_input").hide();
+                        // MultiParty インスタンスを生成
+                        multiparty = new MultiParty( {
+                            "key": "a6c8450d-0132-4f6b-87fd-335791028f73"  /* SkyWay keyを指定 */
+                        });
+
+                        multiparty.on('my_ms', function(video) {
+                            // 自分のvideoを表示
+                            var vNode = MultiParty.util.createVideoNode(video);
+                            $(vNode).appendTo("#streams");
+                            if(moterExist){ //モータはある？
+                                setup(900,900);//setup(renderWidthSize,renderHightSize)
+                            }
+                        }).on('peer_ms', function(video) {
 
 
-        }).on('ms_close', function(peer_id) {
-            // peerが切れたら、対象のvideoノードを削除する
-            $("#"+peer_id).remove();
-        });
+                            // peerのvideoを表示
+                            var vNode = MultiParty.util.createVideoNode(video);
+                            $(vNode).appendTo("#streams");
+                            if(moterExist){ //モータはある？
+                                addActor(vNode, ws);
+                            }
 
-        // サーバとpeerに接続
-        multiparty.start()
+
+                        }).on('ms_close', function(peer_id) {
+                            // peerが切れたら、対象のvideoノードを削除する
+                            $("#"+peer_id).remove();
+                        });
+
+                        // サーバとpeerに接続
+                        multiparty.start();
+
+
+            }
+        }
+
+
+
+
+
+        //- //モーダルで、moterExistの情報を得る
+
+        //- // モーダルウィンドウが開くときの処理
+        //- $(".modalOpen").click(function(){
+
+        //-     var navClass = $(this).attr("class"),
+        //-         href = $(this).attr("href");
+
+        //-     $(href).fadeIn();
+        //-     $(this).addClass("open");
+        //-     return false;
+        //- });
+
+        //- // モーダルウィンドウが閉じるときの処理
+        //- $(".modalClose").click(function(){
+        //-     $(this).parents(".modal").fadeOut();
+        //-     $(".modalOpen").removeClass("open");
+        //-     return false;
+        //- });
+
+
+
+        //- if(moterExist){ //モータはある？
+            //- // Websockeの準備
+            //- var ws_address = "wss://" + ipAdress  + ":9000/ws";
+            //- //- var ws = new WebSocket("wss://192.168.108.208:9000/ws");
+            //- var ws = new WebSocket(ws_address);
+
+            //- // メッセージ受信イベントハンドラ
+            //- ws.onmessage = function(event){
+            //-    //受信時の処理
+            //- 　var elem = document.getElementById("socketMessage");
+            //-    elem.innerHTML = event.data + "<br>";
+            //- }
+
+            //- ws.onerror = function(event){
+            //-     //エラー処理
+            //-     var elem = document.getElementById("socketMessage");
+            //-    elem.innerHTML += "ERROR : " + event.data + "<br>";
+            //- }
+        //- }
+
+
+
+
+
+
 
