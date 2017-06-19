@@ -9,12 +9,32 @@ var rHeight;//rendererの縦のサイズ
 var boneActor;//アナモルフォーズの骨(頂点と面だけのデータ)
 var preStatus;
 var nowStatus;
-var waitTime =30000; //監視インターバルタイム　waitTimeミリ秒ごとに、差分を送信
-/********test ****************/
-var meshR;
-var meshG;
-var meshB;
+var waitTime =1000; //監視インターバルタイム　waitTimeミリ秒ごとに、差分を送信
 
+
+function MoveMotor(webSocket){
+    if(nowStatus && preStatus){
+        console.log("Time comming!");
+        console.log("nowStatus");
+        console.log(nowStatus);
+        var diff_degree = nowStatus.degree - preStatus.degree;
+        console.log("diff_angle : " + diff_degree);
+        if(Math.abs(diff_degree) > 10){
+            console.log("get " + diff_degree);
+            console.log("send " + Math.round(diff_degree/180*200));
+            console.log("sendTime" + new Date());
+            // if(Math.round(diff_degree/180*200) >= 0){
+            //     webSocket.send(20);
+            // }else{
+            //     webSocket.send(-20);
+            // }
+
+            webSocket.send(Math.round(diff_degree/180*200));
+            webSocket.onmessage = function(event){console.log(event.data);}
+            preStatus = nowStatus;
+        }
+    }
+}
 
 
 //setupメソッド(舞台作り)
@@ -61,6 +81,8 @@ function setup(width,height) {
     //stage準備OK
     console.log("Finish setting of renderer, scene, camera, and light.");
     console.log("Stage stand-by OK.");
+
+
 }
 
 //アナモルフォーズの骨組みを作る(頂点データと面データ)
@@ -115,61 +137,6 @@ function makeBone(){
 
     return geometry;
 }
-
-// function renderPoint(x,y ){
-//     return {x: x - renderer.domElement.offsetLeft ,y : y - renderer.domElement.offsetTop}
-// }
-
-// function DetectStatus(pointVec0, pointVec1, pointVec2){
-//     var pointVecs = [pointVec0, pointVec1, pointVec2];
-//     var posX,posY;
-
-//     // calculate each Line's value
-//     var LinesVal = [ Math.sqrt( (pointVec1.x - pointVec2.x)**2 + (pointVec1.y - pointVec2.y)**2) , Math.sqrt( (pointVec2.x - pointVec0.x)**2 + (pointVec2.y - pointVec0.y)**2) , Math.sqrt( (pointVec0.x - pointVec1.x)**2 + (pointVec0.y - pointVec1.y)**2)];
-//     //sets of diagonal line and point
-//     var diagonalPoints = {0 : pointVec0, 1 :pointVec1 , 2: pointVec2 };
-//     // console.log(LinesVal);
-//     // console.log(diagonalPoints);
-
-//     // anglePoint <= point which has a max diagonal line's value.
-//     var maxPoint = 0;
-//     for(var i =1; i < diagonalPoints.length ; i ++ ){
-//         if(LinesVal[ anglePoint ] < LinesVal[i]){
-//             maxPoint = i;
-//         }
-//     }
-//     var anglePoint = pointVecs[maxPoint];
-//     // console.log("anglePoint");
-//     // console.log(anglePoint);
-//     anglePoint = renderPoint(anglePoint.x, anglePoint.y);
-//     // console.log("anglePoint-ren");
-//     // console.log(anglePoint);
-
-//     // caluculate Anamorphicon's location
-//     if (anglePoint === pointVec0){
-//             posX = (pointVec1.x + pointVec2.x) / 2;
-//             posY = (pointVec1.y + pointVec2.y) / 2;
-//     }else if (anglePoint === pointVec1){
-//             posX = (pointVec2.x + pointVec0.x) / 2;
-//             posY = (pointVec2.y + pointVec0.y) / 2;
-//     }else{
-//             posX = (pointVec0.x + pointVec1.x) / 2;
-//             posY = (pointVec0.y + pointVec1.y) / 2;
-//     }
-//     var pos = renderPoint( posX, posY);
-//     // console.log(anglePoint);
-//     // console.log("posX : " + pos.x);
-//     // console.log("posY : " + pos.y);
-//     // Display vertical Line.
-//     var axisLine = renderPoint(0,rHeight)
-//     var radian = Math.atan2(axisLine.x * anglePoint.y - anglePoint.x * axisLine.y, axisLine.x * anglePoint.x + axisLine.y * anglePoint.y);
-//     var degree = radian*180/Math.PI;
-//     degree = -Math.round(degree);
-//     // console.log("degree : " + degree);
-
-//     // var angle = atan2{axisLine.x * v1.y - axisLine[angleLineNum].x * axisLine.y, axisLine.x * axisLine[angleLineNum].x + axisLine.y * axisLine[angleLineNum].y);
-//     return { x : pos.x, y : pos.y, degree : degree, timeStamp : new Date()} ;  // status
-// }
 
 function DetectStatus(e){
     var touchList = e.touches;
@@ -228,20 +195,6 @@ function DetectStatus(e){
             shortP=touchList[2];
         }
     }
-    // if((semiLongP.screenX-longP.screenX)!=0&&longP.screenY-semiLongP.screenY!=0){
-    //     arctan = Math.atan2((semiLongP.screenX-longP.screenX),(longP.screenY-semiLongP.screenY));
-    //     var degree = arctan*180/Math.PI;
-    //     degree = -Math.round(degree);
-    //     // console.log("degree : " + degree);
-    // }
-
-
-
-    meshR.position.set((shortP.x-renderer.domElement.offsetLeft / rWidth)*2-1,  - (shortP.y-renderer.domElement.offsetTop / rHeight)*2+1 , 0);
-    meshG.position.set((semiLongP.x-renderer.domElement.offsetLeft / rWidth)*2-1,  - (semiLongP.y-renderer.domElement.offsetTop / rHeight)*2+1 , 0);
-    meshB.position.set((longP.x-renderer.domElement.offsetLeft / rWidth)*2-1,  - (longP.y-renderer.domElement.offsetTop / rHeight)*2+1 , 0);
-
-
 
     var posX = (semiLongP.pageX + shortP.pageX) / 2;
     var posY = (semiLongP.pageY + shortP.pageY) / 2;
@@ -262,10 +215,6 @@ function DetectStatus(e){
 function addActorAction(webSocket){
 
     var i=0;
-    // var preStatus;
-    // var nowStatus;
-    // var waitTime =3000; //監視インターバルタイム　waitTimeミリ秒ごとに、差分を送信
-
 
     //タッチイベントをサポートしているか調べる
     //対応してなければクリック対応
@@ -280,10 +229,6 @@ function addActorAction(webSocket){
 
 
             if(e.touches.length >= 3){
-                // var vec0 = {x : e.touches[0].pageX, y : e.touches[0].pageY};
-                // var vec1 = {x : e.touches[1].pageX, y : e.touches[1].pageY};
-                // var vec2 = {x : e.touches[2].pageX, y : e.touches[2].pageY};
-                // preStatus = DetectStatus(vec0,vec1,vec2);
 
                 if(nowStatus == null){
                     preStatus = DetectStatus(e);
@@ -300,21 +245,21 @@ function addActorAction(webSocket){
                     // console.log("nowStatus");
                     // console.log(nowStatus);
 
-                    if(nowStatus.timeStamp - preStatus.timeStamp > waitTime){
-                        console.log("Time comming!");
-                        console.log("nowStatus");
-                        console.log(nowStatus);
-                        var diff_degree = nowStatus.degree - preStatus.degree;
-                        console.log("diff_angle : " + diff_degree);
-                        if(Math.abs(diff_degree) > 10){
-                            console.log("get " + diff_degree);
-                            console.log("send " + Math.round(diff_degree/180*200));
-                            webSocket.send(10);
-                            // webSocket.send(Math.round(diff_degree/180*200));
-                            // webSocket.onmessage = function(event){console.log(event.data);}
-                            preStatus = nowStatus;
-                        }
-                    }
+                    // if(nowStatus.timeStamp - preStatus.timeStamp > waitTime){
+                    //     console.log("Time comming!");
+                    //     console.log("nowStatus");
+                    //     console.log(nowStatus);
+                    //     var diff_degree = nowStatus.degree - preStatus.degree;
+                    //     console.log("diff_angle : " + diff_degree);
+                    //     if(Math.abs(diff_degree) > 10){
+                    //         console.log("get " + diff_degree);
+                    //         console.log("send " + Math.round(diff_degree/180*200));
+                    //         webSocket.send(10);
+                    //         // webSocket.send(Math.round(diff_degree/180*200));
+                    //         // webSocket.onmessage = function(event){console.log(event.data);}
+                    //         preStatus = nowStatus;
+                    //     }
+                    // }
 
                 }
             }
@@ -325,33 +270,29 @@ function addActorAction(webSocket){
         renderer.domElement.addEventListener("touchmove", function(e){
 
             if(e.touches.length >= 3){
-                // var vec0 = {x : e.touches[0].pageX, y : e.touches[0].pageY};
-                // var vec1 = {x : e.touches[1].pageX, y : e.touches[1].pageY};
-                // var vec2 = {x : e.touches[2].pageX, y : e.touches[2].pageY};
-                // nowStatus = DetectStatus(vec0,vec1,vec2);
                 nowStatus = DetectStatus(e);
-                // console.log("nowStatus");
-                // console.log(nowStatus);
 
-                if(nowStatus.timeStamp - preStatus.timeStamp > waitTime){
-                    console.log("Time comming!");
-                    console.log("nowStatus");
-                    console.log(nowStatus);
-                    var diff_degree = nowStatus.degree - preStatus.degree;
-                    console.log("diff_angle : " + diff_degree);
-                    if(Math.abs(diff_degree) > 10){
-                        console.log("get " + diff_degree);
-                        console.log("send " + Math.round(diff_degree/180*200));
-                        // webSocket.send(Math.round(diff_degree/180*200));
-                        preStatus = nowStatus;
-                    }
-                }
+                // if(nowStatus.timeStamp - preStatus.timeStamp > waitTime){
+                //     console.log("Time comming!");
+                //     console.log("nowStatus");
+                //     console.log(nowStatus);
+                //     var diff_degree = nowStatus.degree - preStatus.degree;
+                //     console.log("diff_angle : " + diff_degree);
+                //     if(Math.abs(diff_degree) > 10){
+                //         console.log("get " + diff_degree);
+                //         console.log("send " + Math.round(diff_degree/180*200));
+                //         // webSocket.send(Math.round(diff_degree/180*200));
+                //         preStatus = nowStatus;
+                //     }
+                // }
 
                 //X軸, Y軸共に -1 ~ 1 の間に収まるよう調整し、その位置に移動
                 meshlist[i].position.x = (nowStatus.x / rWidth)*2-1;
                 meshlist[i].position.y = -(nowStatus.y / rHeight)*2+1;
             }
         });
+
+    setInterval(function(){MoveMotor(webSocket)},waitTime);
 
 }
 

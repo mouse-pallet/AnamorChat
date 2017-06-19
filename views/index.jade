@@ -19,10 +19,10 @@ block content
         var ipAdress;
         var ws; //websocket instance
 
-        // スクロール禁止
-        $(window).on('touchmove.noScroll', function(e) {
-            e.preventDefault();
-        });
+        //- // スクロール禁止
+        //- $(window).on('touchmove.noScroll', function(e) {
+        //-     e.preventDefault();
+        //- });
 
         function webSocketSetting(){
             ipAdress = $('#moter_ip_adress').val();
