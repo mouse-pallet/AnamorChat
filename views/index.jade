@@ -5,7 +5,7 @@ block content
     p#moter_ip_input
       label(for='moter_ip_adress') 相手のモータのIPアドレス：
       br
-      textarea( id="moter_ip_adress", cols='20', rows='1', maxlength='20', placeholder='192.168.108.208')
+      textarea( id="moter_ip_adress", cols='20', rows='1', maxlength='20', placeholder='192.168.xxx.xxx')
       br
       input(type='button', value='Exec', onclick='OnButtonClick();')
 
@@ -84,6 +84,8 @@ block content
                             $(vNode).appendTo("#streams");
                             if(moterExist){ //モータはある？
                                 addActor(vNode, ws);
+                            }else {
+                                $(vNode).width(700);
                             }
 
 

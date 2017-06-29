@@ -9,7 +9,7 @@ var rHeight;//rendererの縦のサイズ
 var boneActor;//アナモルフォーズの骨(頂点と面だけのデータ)
 var preStatus;
 var nowStatus;
-var waitTime =1000; //監視インターバルタイム　waitTimeミリ秒ごとに、差分を送信
+var waitTime =800; //監視インターバルタイム　waitTimeミリ秒ごとに、差分を送信
 
 
 function MoveMotor(webSocket){
@@ -21,7 +21,7 @@ function MoveMotor(webSocket){
         console.log("diff_angle : " + diff_degree);
         if(Math.abs(diff_degree) > 10){
             console.log("get " + diff_degree);
-            console.log("send " + Math.round(diff_degree/180*200));
+            console.log("send " + Math.round(diff_degree/180*200) *2.5);
             console.log("sendTime" + new Date());
             // if(Math.round(diff_degree/180*200) >= 0){
             //     webSocket.send(20);
@@ -70,13 +70,13 @@ function setup(width,height) {
     preStatus = null;
     nowStatus = null;
 
-    var geo = new THREE.CubeGeometry(0.03, 0.03, 0.03); // 立方体作成
-    meshR     = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color: 0xaa0000}));
-    meshG     = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color: 0x00aa00}));
-    meshB     = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color: 0x0000aa}));
-    scene.add(meshR);
-    scene.add(meshG);
-    scene.add(meshB);
+    // var geo = new THREE.CubeGeometry(0.03, 0.03, 0.03); // 立方体作成
+    // meshR     = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color: 0xaa0000}));
+    // meshG     = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color: 0x00aa00}));
+    // meshB     = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color: 0x0000aa}));
+    // scene.add(meshR);
+    // scene.add(meshG);
+    // scene.add(meshB);
 
     //stage準備OK
     console.log("Finish setting of renderer, scene, camera, and light.");
@@ -93,7 +93,8 @@ function makeBone(){
     var nullary = [];
     // MathAnamor(0.6,3.0,5.0);//(半径、視点Y、視点Z)
     // MathAnamor(0.7,2.68,7);//(6cm、23cm、60cm)
-    MathAnamor(0.78,2.68,7);//(7cm、23cm、60cm)
+    MathAnamor(0.82,2.68,7);//(7cm、23cm、60cm)
+    //MathAnamor(0.78,6.41,3.5);//(7cm、23cm、60cm)
     for(var y = 0 ; y <= 64 ; y++) {
         for(var x = 0 ; x <= 64 ; x++) {
         var Plot=MathDot(x / 32 - 1,y / 32 - 1);
